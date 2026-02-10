@@ -150,6 +150,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Project.Core.AppManager
   initialSceneName: Home
   targetFrameRate: 60
+  globalUiPrefab: {fileID: 6569499992202253668, guid: 4c4b638c261396a48a240d1f01e69eba, type: 3}
   loadInitialSceneOnPlay: 1
 --- !u!4 &601223732
 Transform:

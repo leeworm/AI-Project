@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Project.UI;
 
 namespace Project.Core
 {
@@ -10,7 +11,7 @@ namespace Project.Core
     /// - 실행 시 initialSceneName(Home)으로 자동 진입
     /// - DontDestroyOnLoad로 유지
     /// </summary>
-    public sealed class AppManager : MonoBehaviour
+    public sealed partial class AppManager : MonoBehaviour
     {
         // 씬 이름은 문자열 오타가 가장 흔한 사고 원인이라 "한 곳"에만 모아 둡니다.
         public static class Scenes
@@ -21,29 +22,35 @@ namespace Project.Core
             public const string DemoDay = "DemoDay";
         }
 
-        private static AppManager s_instance;
-
         [Header("Bootstrap")]
         [SerializeField] private string initialSceneName = Scenes.Home;
         [SerializeField] private int targetFrameRate = 60;
+
+        [Header("Global UI")]
+        [SerializeField] private GameObject globalUiPrefab;
 
         [Header("Debug")]
         [SerializeField] private bool loadInitialSceneOnPlay = true;
 
         private bool _isLoading;
 
+        public static AppManager Instance { get; private set; }
+
+
         private void Awake()
         {
-            if (s_instance != null && s_instance != this)
+            if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
                 return;
             }
 
-            s_instance = this;
+            Instance = this;
             DontDestroyOnLoad(gameObject);
 
             Application.targetFrameRate = targetFrameRate;
+
+            EnsureGlobalUI();
         }
 
         private IEnumerator Start()
@@ -99,6 +106,22 @@ namespace Project.Core
                 yield return null;
 
             _isLoading = false;
+        }
+
+        private void EnsureGlobalUI()
+        {
+            if (globalUiPrefab == null)
+            {
+                Debug.LogWarning("[AppManager] globalUiPrefab is not assigned.");
+                return;
+            }
+
+            // 이미 HUD가 있으면 생성하지 않음 (중복 방지)
+            var existingHud = Object.FindAnyObjectByType<GameHUDView>(FindObjectsInactive.Include);
+            if (existingHud != null)
+                return;
+
+            Instantiate(globalUiPrefab);
         }
     }
 }
