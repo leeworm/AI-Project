@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b187d6057961fe7448a6146782ae4f55, type: 3}
+  m_Name: NPC_Yoonseo
+  m_EditorClassIdentifier: Assembly-CSharp::NpcDefinition
+  npcId: yoonseo
+  displayName: "\uC724\uC11C"
+  persona: "\uCC28\uBD84\uD558\uACE0 \uC2E4\uBB34\uC801\uC778 \uB9D0\uD22C. \uACFC\uC7A5
+    \uC5C6\uC774 \uD575\uC2EC\uB9CC \uB9D0\uD55C\uB2E4. \uC9C8\uBB38\uC5D0 \uC9E7\uAC8C
+    \uB2F5\uD558\uACE0, \uD544\uC694\uD558\uBA74 \uB2E4\uC74C \uD589\uB3D9\uC744
+    \uC81C\uC548\uD55C\uB2E4."
