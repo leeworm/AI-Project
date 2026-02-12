@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 public class NpcTalkTestController : MonoBehaviour
 {
@@ -16,66 +15,42 @@ public class NpcTalkTestController : MonoBehaviour
     [SerializeField] private TMP_Text npcReplyText;
     [SerializeField] private TMP_Text debugText;
 
-    private NpcProxyClient _client;
-    private int _day = 1;
-    private string _timeSlot = "morning";
-    private int _affinity = 0;
-
-    private readonly List<FlagKV> _flags = new();
+    private DialogueService _dialogue;
 
     private void Awake()
     {
-        _client = new NpcProxyClient(proxyUrl);
+        _dialogue = new DialogueService(proxyUrl);
     }
 
     public async void OnClickSend()
     {
         try
         {
+            if (npc == null)
+                throw new Exception("NpcDefinition이 연결되지 않았습니다.");
+
+            if (GameBootstrap.State == null)
+                throw new Exception("GameBootstrap.State가 null입니다. 씬에 GameBootstrap 오브젝트가 있는지 확인하세요.");
+
             var playerInput = inputField.text?.Trim();
             if (string.IsNullOrEmpty(playerInput))
                 return;
 
-            debugText.text = "Calling proxy...";
+            debugText.text = "Talking...";
 
-            var req = new NpcTalkRequest
-            {
-                npc_id = npc != null ? npc.npcId : "npc",
-                npc_name = npc != null ? npc.displayName : "NPC",
-                persona = npc != null ? npc.persona : "",
-                day = _day,
-                time_slot = _timeSlot,
-                affinity = _affinity,
-                player_input = playerInput,
-                flags = new List<FlagKV>(_flags)
-            };
+            var resp = await _dialogue.TalkAsync(GameBootstrap.State, npc, playerInput);
 
-            // Unity JsonUtility는 List 직렬화는 되지만, 복잡한 케이스에서 제약이 있어요.
-            // 지금은 "단순 테스트"라 JsonUtility로 갑니다.
-            var json = JsonUtility.ToJson(req);
+            npcReplyText.text = resp.reply;
 
-            var raw = await _client.PostJsonAsync(json);
+            // 상태 표시(저장된 실제 값)
+            var npcState = GameBootstrap.State.GetOrCreateNpc(npc.npcId);
+            debugText.text =
+                $"npc={npc.displayName}\n" +
+                $"affinity={npcState.affinity}\n" +
+                $"flags={npcState.flags.Count}\n" +
+                $"turns={npcState.recentTurns.Count}\n" +
+                $"memo={npcState.summaryMemo}";
 
-            // 지금 프록시는 OpenAI Responses API의 "원본 JSON 전체"를 반환하고 있습니다.
-            // 우리는 그 안에서 "schema에 맞는 JSON"만 꺼내야 하는데,
-            // 첫 성공 단계에서는 프록시 응답을 그대로 콘솔에 찍고 확인하는 방식으로 갑니다.
-            // (다음 단계에서 프록시가 reply JSON만 추출해서 내려주게 개선합니다.)
-            Debug.Log(raw);
-
-            // 임시: 프록시가 "딱 response JSON만" 내려준다고 가정하고 파싱 시도
-            // (파싱 실패하면 debugText에 원인 표시)
-            var parsed = JsonUtility.FromJson<NpcTalkResponse>(raw);
-
-            npcReplyText.text = parsed.reply;
-            _affinity += parsed.affinity_delta;
-
-            if (parsed.flag_updates != null)
-            {
-                foreach (var kv in parsed.flag_updates)
-                    UpsertFlag(kv.key, kv.value);
-            }
-
-            debugText.text = $"affinity={_affinity}\nnote={parsed.note}\nflags={_flags.Count}";
             inputField.text = "";
         }
         catch (Exception e)
@@ -83,12 +58,5 @@ public class NpcTalkTestController : MonoBehaviour
             Debug.LogError(e);
             debugText.text = "Error:\n" + e.Message;
         }
-    }
-
-    private void UpsertFlag(string key, string value)
-    {
-        var idx = _flags.FindIndex(f => f.key == key);
-        if (idx >= 0) _flags[idx].value = value;
-        else _flags.Add(new FlagKV { key = key, value = value });
     }
 }

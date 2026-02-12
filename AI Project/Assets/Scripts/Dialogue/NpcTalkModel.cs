@@ -2,6 +2,13 @@
 using System.Collections.Generic;
 
 [Serializable]
+public class FlagKV
+{
+    public string key;
+    public string value;
+}
+
+[Serializable]
 public class NpcTalkRequest
 {
     public string npc_id;
@@ -12,16 +19,12 @@ public class NpcTalkRequest
     public string time_slot;
 
     public int affinity;
-    public string player_input;
-
     public List<FlagKV> flags = new();
-}
 
-[Serializable]
-public class FlagKV
-{
-    public string key;
-    public string value;
+    public List<Turn> recent_turns = new();
+    public string summary_memo;
+
+    public string player_input;
 }
 
 [Serializable]
