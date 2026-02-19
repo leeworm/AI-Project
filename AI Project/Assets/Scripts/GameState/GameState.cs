@@ -32,4 +32,13 @@ public class GameState
             _npcStates[s.npcId] = s;
         }
     }
+
+    public RouteState Route { get; private set; } = new RouteState();
+
+    public void ReplaceRoute(RouteState route)
+    {
+        Route = route ?? new RouteState();
+    }
+
+
 }

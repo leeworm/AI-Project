@@ -9,14 +9,26 @@ EditorBuildSettings:
     path: Assets/Scenes/Boot.unity
     guid: e7126672a6060b24bad21997fa9772a5
   - enabled: 1
-    path: Assets/Scenes/Home.unity
+    path: Assets/Scenes/MainMenu.unity
+    guid: 0641cb03d72a5c54381a259e11b192dd
+  - enabled: 1
+    path: Assets/Scenes/Prologue.unity
+    guid: 9407060a7349dbe408716a53788549db
+  - enabled: 1
+    path: Assets/Scenes/HomeHub.unity
     guid: 8f1f31e850956b74787900b9851a91c7
   - enabled: 1
-    path: Assets/Scenes/World.unity
+    path: Assets/Scenes/WorldMap.unity
     guid: fabd28916fc644847a095756ad94caaf
+  - enabled: 1
+    path: Assets/Scenes/Location_Cafe.unity
+    guid: 90564d13cf8a94b4ebc23ce19c92739b
   - enabled: 1
     path: Assets/Scenes/DemoDay.unity
     guid: 5da8f8baa3c2d1f4aa39caf0ba82e837
+  - enabled: 1
+    path: Assets/Scenes/NpcApiTest.unity
+    guid: dc962349266ffeb44a752df2b05ae3a2
   m_configObjects:
     com.unity.adaptivePerformance.basic.provider_settings: {fileID: 11400000, guid: 2ef1aa6e2cf05284fb36b5d051d16315, type: 2}
     com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: dd6f07b7e2394c0418324fa22c1931a0, type: 2}

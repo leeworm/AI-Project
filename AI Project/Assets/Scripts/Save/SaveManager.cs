@@ -8,7 +8,10 @@ public class SaveManager : MonoBehaviour
     public static SaveManager Instance { get; private set; }
 
     [SerializeField] private int slot = 1;
+
     public int Slot => slot;
+    public const int MinSlot = 1;
+    public const int MaxSlot = 3;
 
     private void Awake()
     {
@@ -17,71 +20,74 @@ public class SaveManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        Debug.Log("persistentDataPath: " + Application.persistentDataPath);
     }
 
-    [Serializable]
-    private class NpcsSaveData
+    public void SetSlot(int slotIndex)
     {
-        public List<NpcState> npcs = new();
+        slot = Mathf.Clamp(slotIndex, MinSlot, MaxSlot);
+    }
+
+    public bool HasSaveInSlot(int slotIndex)
+    {
+        var dir = GetSlotDir(slotIndex);
+        var path = Path.Combine(dir, "save.json");
+        return File.Exists(path);
+    }
+
+    public void DeleteSlot(int slotIndex)
+    {
+        var dir = GetSlotDir(slotIndex);
+        if (Directory.Exists(dir))
+            Directory.Delete(dir, true);
     }
 
     public void SaveAll(GameState state)
     {
         if (state == null) return;
 
-        var slotDir = GetSlotDir(slot);
-        if (!Directory.Exists(slotDir))
-            Directory.CreateDirectory(slotDir);
+        var dir = GetSlotDir(slot);
+        if (!Directory.Exists(dir))
+            Directory.CreateDirectory(dir);
 
-        // World
-        File.WriteAllText(Path.Combine(slotDir, "world.json"), JsonUtility.ToJson(state.World, true));
+        var save = new SaveData
+        {
+            saved_at = DateTimeOffset.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"),
+            route = state.Route,
+            world = state.World,
+            npcs = new List<NpcState>()
+        };
 
-        // NPCs
-        var npcsData = new NpcsSaveData();
         foreach (var kv in state.AllNpcs)
-            npcsData.npcs.Add(kv.Value);
+            save.npcs.Add(kv.Value);
 
-        File.WriteAllText(Path.Combine(slotDir, "npcs.json"), JsonUtility.ToJson(npcsData, true));
+        var json = JsonUtility.ToJson(save, true);
+        File.WriteAllText(Path.Combine(dir, "save.json"), json);
     }
 
-    public void LoadAll(GameState state)
+    public bool LoadAll(GameState state)
     {
-        if (state == null) return;
+        if (state == null) return false;
 
-        var slotDir = GetSlotDir(slot);
+        var dir = GetSlotDir(slot);
+        var path = Path.Combine(dir, "save.json");
+        if (!File.Exists(path))
+            return false;
 
-        // World
-        var worldPath = Path.Combine(slotDir, "world.json");
-        if (File.Exists(worldPath))
-        {
-            var json = File.ReadAllText(worldPath);
-            state.ReplaceWorld(JsonUtility.FromJson<WorldState>(json));
-        }
-        else
-        {
-            state.ReplaceWorld(new WorldState());
-        }
+        var json = File.ReadAllText(path);
+        var save = JsonUtility.FromJson<SaveData>(json);
+        if (save == null) return false;
 
-        // NPCs
-        var npcsPath = Path.Combine(slotDir, "npcs.json");
-        if (File.Exists(npcsPath))
-        {
-            var json = File.ReadAllText(npcsPath);
-            var npcs = JsonUtility.FromJson<NpcsSaveData>(json);
-            state.ReplaceAllNpcs(npcs?.npcs);
-        }
-        else
-        {
-            state.ReplaceAllNpcs(null);
-        }
+        state.ReplaceWorld(save.world);
+        state.ReplaceRoute(save.route);
+        state.ReplaceAllNpcs(save.npcs);
+
+        return true;
     }
 
-    private static string GetSlotDir(int slot)
+    private static string GetSlotDir(int slotIndex)
     {
-        return Path.Combine(Application.persistentDataPath, "Save", $"slot_{slot:00}");
+        return Path.Combine(Application.persistentDataPath, "Save", $"slot_{slotIndex:00}");
     }
 }

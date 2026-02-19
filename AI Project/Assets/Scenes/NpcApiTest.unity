@@ -197,6 +197,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b08109c21574d74e8058fe0736414ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameBootstrap
+  npcDatabase: {fileID: 11400000, guid: 93d5eda2ee12cdf44af9a6f757b80e4c, type: 2}
 --- !u!4 &280745203
 Transform:
   m_ObjectHideFlags: 0

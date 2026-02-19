@@ -1,12 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-[Serializable]
-public class FlagKV
-{
-    public string key;
-    public string value;
-}
 
 [Serializable]
 public class NpcTalkRequest

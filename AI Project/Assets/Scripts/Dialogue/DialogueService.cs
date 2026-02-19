@@ -12,16 +12,25 @@ public class DialogueService
         _client = new NpcProxyClient(proxyUrl);
     }
 
-    public async Task<NpcTalkResponse> TalkAsync(GameState game, NpcDefinition def, string playerInput)
+    public async Task<NpcTalkResponse> TalkAsync(NpcDefinition def, string playerInput)
     {
-        if (game == null) throw new ArgumentNullException(nameof(game));
-        if (def == null) throw new ArgumentNullException(nameof(def));
+        if (App.I == null)
+            throw new InvalidOperationException("App is not initialized. Boot 씬에 App 오브젝트가 있는지 확인하세요.");
+
+        if (def == null)
+            throw new ArgumentNullException(nameof(def));
 
         playerInput = playerInput?.Trim();
         if (string.IsNullOrEmpty(playerInput))
             throw new Exception("playerInput is empty.");
 
-        var npc = game.GetOrCreateNpc(def.npcId);
+        var app = App.I;
+
+        if (!app.Npcs.TryGetValue(def.npcId, out var npc))
+        {
+            npc = new NpcState { npcId = def.npcId, affinity = 0 };
+            app.Npcs[def.npcId] = npc;
+        }
 
         // 최근 대화에 플레이어 입력 먼저 기록
         npc.AddTurn("player", playerInput);
@@ -29,14 +38,14 @@ public class DialogueService
         NpcTalkResponse resp;
 
         // ✅ 로컬/프록시 분기
-        if (!DialogueCallPolicy.ShouldCallGpt(playerInput))
+        if (!ShouldCallGpt(playerInput))
         {
-            resp = BuildLocalReply(game, def, npc, playerInput);
+            resp = BuildLocalReply(app.World, def, npc, playerInput);
             ApplyResponseToState(npc, resp);
         }
         else
         {
-            var req = BuildRequest(game, def, npc, playerInput);
+            var req = BuildRequest(app.World, def, npc, playerInput);
             var raw = await _client.PostJsonAsync(JsonUtility.ToJson(req));
             resp = JsonUtility.FromJson<NpcTalkResponse>(raw);
 
@@ -47,12 +56,12 @@ public class DialogueService
         }
 
         // ✅ 공통 자동 저장(성공적으로 상태 반영이 끝난 뒤)
-        SaveManager.Instance?.SaveAll(GameBootstrap.State);
+        app.Save();
 
         return resp;
     }
 
-    private static NpcTalkRequest BuildRequest(GameState game, NpcDefinition def, NpcState npc, string playerInput)
+    private static NpcTalkRequest BuildRequest(WorldState world, NpcDefinition def, NpcState npc, string playerInput)
     {
         return new NpcTalkRequest
         {
@@ -60,8 +69,8 @@ public class DialogueService
             npc_name = def.displayName,
             persona = def.persona,
 
-            day = game.World.day,
-            time_slot = game.World.timeSlot,
+            day = world.day,
+            time_slot = world.timeSlot,
 
             affinity = npc.affinity,
             flags = npc.flags,
@@ -86,15 +95,14 @@ public class DialogueService
         // NPC 응답 기록
         npc.AddTurn("npc", resp.reply);
 
-        // 요약 메모(초간단): note로 갱신
+        // 요약 메모: note로 갱신
         if (!string.IsNullOrWhiteSpace(resp.note))
             npc.summaryMemo = resp.note;
     }
 
-    private static NpcTalkResponse BuildLocalReply(GameState game, NpcDefinition def, NpcState npc, string playerInput)
+    private static NpcTalkResponse BuildLocalReply(WorldState world, NpcDefinition def, NpcState npc, string playerInput)
     {
-        // 최소 로컬 템플릿(바이브 코딩 친화)
-        string reply = game.World.timeSlot switch
+        string reply = world.timeSlot switch
         {
             "morning" => "안녕하세요. 오늘 오전 일정부터 정리하겠습니다. 무엇을 우선할까요?",
             "afternoon" => "오후에는 처리할 일이 늘어납니다. 우선순위를 말씀해 주세요.",
@@ -106,8 +114,20 @@ public class DialogueService
         {
             reply = reply,
             affinity_delta = 0,
-            flag_updates = new List<FlagKV>(), // 스키마 일관성 유지
+            flag_updates = new List<FlagKV>(),
             note = "로컬 응답 사용"
         };
+    }
+
+    private static bool ShouldCallGpt(string playerInput)
+    {
+        if (string.IsNullOrWhiteSpace(playerInput)) return false;
+
+        string[] triggers = { "퀘스트", "선택", "결정", "왜", "어떻게", "도와", "계획", "비밀", "중요" };
+        foreach (var t in triggers)
+            if (playerInput.Contains(t, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+        return false;
     }
 }

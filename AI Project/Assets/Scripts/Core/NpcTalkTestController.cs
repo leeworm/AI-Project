@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.NetworkInformation;
 using TMPro;
 using UnityEngine;
 
@@ -29,8 +30,8 @@ public class NpcTalkTestController : MonoBehaviour
             if (npc == null)
                 throw new Exception("NpcDefinition이 연결되지 않았습니다.");
 
-            if (GameBootstrap.State == null)
-                throw new Exception("GameBootstrap.State가 null입니다. 씬에 GameBootstrap 오브젝트가 있는지 확인하세요.");
+            if (App.I == null)
+                throw new Exception("App.I is null. Boot 씬에 App 오브젝트(App/SceneRouter)가 존재하는지 확인하세요.");
 
             var playerInput = inputField.text?.Trim();
             if (string.IsNullOrEmpty(playerInput))
@@ -38,12 +39,16 @@ public class NpcTalkTestController : MonoBehaviour
 
             debugText.text = "Talking...";
 
-            var resp = await _dialogue.TalkAsync(GameBootstrap.State, npc, playerInput);
+            var resp = await _dialogue.TalkAsync(npc, playerInput);
 
             npcReplyText.text = resp.reply;
 
             // 상태 표시(저장된 실제 값)
-            var npcState = GameBootstrap.State.GetOrCreateNpc(npc.npcId);
+            if (!App.I.Npcs.TryGetValue(npc.npcId, out var npcState))
+            {
+                npcState = new NpcState { npcId = npc.npcId, affinity = 0 };
+                App.I.Npcs[npc.npcId] = npcState;
+            }
             debugText.text =
                 $"npc={npc.displayName}\n" +
                 $"affinity={npcState.affinity}\n" +
