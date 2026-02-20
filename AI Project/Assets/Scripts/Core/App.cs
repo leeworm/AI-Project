@@ -41,7 +41,6 @@ public class App : MonoBehaviour
             return Load();
 
         InitDefaults();
-        Save();
         return false;
     }
 
@@ -68,7 +67,14 @@ public class App : MonoBehaviour
 
         File.WriteAllText(SavePath, JsonUtility.ToJson(save, true));
     }
-
+    public bool HasSave(int s)
+    {
+        int prev = slot;
+        SetSlot(s);
+        bool exists = System.IO.File.Exists(SavePath);
+        slot = prev;
+        return exists;
+    }
     public bool Load()
     {
         if (!File.Exists(SavePath)) return false;

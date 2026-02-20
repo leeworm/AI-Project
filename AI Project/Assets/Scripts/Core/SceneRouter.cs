@@ -18,16 +18,27 @@ public class SceneRouter : MonoBehaviour
     public void Continue(int slot = 1)
     {
         App.I.SetSlot(slot);
-        App.I.LoadOrInit();
 
+        if (!App.I.HasSave(slot))
+        {
+            Debug.LogWarning("No save found.");
+            // 필요하면 MainMenu에 남기거나 안내 UI 띄우기
+            return;
+        }
+
+        App.I.LoadOrInit();
         var idx = App.I.Route.scene_build_index;
         if (idx < 0 || idx >= SceneManager.sceneCountInBuildSettings)
             idx = (int)SceneId.HomeHub;
-
         SceneManager.LoadScene(idx);
     }
 
     public void NewGame(int slot = 1)
+    {
+        App.I.NewGame(slot);
+        SceneManager.LoadScene(App.I.Route.scene_build_index);
+    }
+    public void StartNewGameSlot(int slot)
     {
         App.I.NewGame(slot);
         SceneManager.LoadScene(App.I.Route.scene_build_index);
@@ -40,4 +51,29 @@ public class SceneRouter : MonoBehaviour
         App.I.Save();
         SceneManager.LoadScene((int)id);
     }
+
+    public void UI_Continue_Slot1()
+    {
+        Continue(1);
+    }
+
+    public void UI_NewGame_Slot1()
+    {
+        NewGame(1);
+    }
+
+    public void UI_Options()
+    {
+        Go(SceneId.Options);
+    }
+
+    public void UI_Quit()
+    {
+#if UNITY_EDITOR
+        Debug.Log("Quit (Editor)");
+#else
+    Application.Quit();
+#endif
+    }
+
 }
