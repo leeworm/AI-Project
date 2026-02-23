@@ -38,10 +38,17 @@ public class SceneRouter : MonoBehaviour
         App.I.NewGame(slot);
         SceneManager.LoadScene(App.I.Route.scene_build_index);
     }
+
     public void StartNewGameSlot(int slot)
     {
+        Debug.Log($"[Router] StartNewGameSlot({slot})");
+
         App.I.NewGame(slot);
-        SceneManager.LoadScene(App.I.Route.scene_build_index);
+
+        int idx = App.I.Route.scene_build_index;
+        Debug.Log($"[Router] LoadScene index={idx}");
+
+        SceneManager.LoadScene(idx);
     }
 
     public void Go(SceneId id, string spawn = SpawnPointIds.EntryDefault)

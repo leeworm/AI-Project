@@ -31,7 +31,7 @@ public class App : MonoBehaviour
     {
         SetSlot(s);
         DeleteSlot();
-        InitDefaults();
+        InitDefaultsForNewGame();
         Save();
     }
 
@@ -40,14 +40,28 @@ public class App : MonoBehaviour
         if (File.Exists(SavePath))
             return Load();
 
-        InitDefaults();
+        InitDefaultsForBoot();
         return false;
     }
 
-    private void InitDefaults()
+    private void InitDefaultsForBoot()
     {
         World = new WorldState { day = 1, timeSlot = "morning", locationId = "home" };
         Route = new RouteState { scene_build_index = (int)SceneId.MainMenu, spawn_point = SpawnPointIds.EntryDefault };
+        Npcs = new Dictionary<string, NpcState>();
+    }
+
+    private void InitDefaultsForNewGame()
+    {
+        World = new WorldState { day = 1, timeSlot = "morning", locationId = "home" };
+
+        // 새 게임 시작 씬을 여기서 고정
+        Route = new RouteState
+        {
+            scene_build_index = (int)SceneId.Prologue,   // 또는 HomeHub
+            spawn_point = SpawnPointIds.EntryDefault
+        };
+
         Npcs = new Dictionary<string, NpcState>();
     }
 
@@ -101,6 +115,14 @@ public class App : MonoBehaviour
     {
         if (Directory.Exists(SaveDir))
             Directory.Delete(SaveDir, true);
+    }
+
+    public void DeleteSlot(int s)
+    {
+        int prev = slot;
+        SetSlot(s);
+        DeleteSlot();
+        slot = prev;
     }
 
 #if UNITY_EDITOR
