@@ -9,7 +9,8 @@ public enum SceneId
     Prologue = 3,
     HomeHub = 4,
     WorldMap = 5,
-    LocationCafe = 6
+    LocationCafe = 6,
+    DemoDay = 7,
 }
 
 public static class SpawnPointIds

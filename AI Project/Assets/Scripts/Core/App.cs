@@ -58,7 +58,7 @@ public class App : MonoBehaviour
         // 새 게임 시작 씬을 여기서 고정
         Route = new RouteState
         {
-            scene_build_index = (int)SceneId.Prologue,   // 또는 HomeHub
+            scene_build_index = (int)SceneId.HomeHub,   // 또는 Prologue 등 원하는 씬으로
             spawn_point = SpawnPointIds.EntryDefault
         };
 

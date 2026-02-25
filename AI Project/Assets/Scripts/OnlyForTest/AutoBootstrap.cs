@@ -13,6 +13,8 @@ public static class AutoBootstrap
         var go = new GameObject("App(Auto)");
         go.AddComponent<App>();
         go.AddComponent<SceneRouter>();
+        go.AddComponent<AudioHub>();
+        go.AddComponent<UIClickSfxInstaller>();
         Object.DontDestroyOnLoad(go);
     }
 }
