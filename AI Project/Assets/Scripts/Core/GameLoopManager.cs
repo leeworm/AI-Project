@@ -78,7 +78,14 @@ namespace Project.Core
 
         private void Start()
         {
-            InitializeNewGame();
+            if (App.I != null && App.I.World != null)
+            {
+                InitializeFromAppWorld();
+            }
+            else
+            {
+                InitializeNewGame();
+            }
         }
 
         public void InitializeNewGame()
@@ -87,6 +94,83 @@ namespace Project.Core
             EnterTimeBlock(TimeBlock.Morning);
             SetEventLock(false);
             RaiseAll();
+        }
+
+        private void InitializeFromAppWorld()
+        {
+            // 최소한 day는 App.World.day 사용
+            Day = Mathf.Clamp(App.I.World.day, 1, endDay);
+
+            EnterTimeBlock(TokenToBlock(App.I.World.timeSlot));
+
+            // 로드 직후엔 기본적으로 락 해제
+            SetEventLock(false);
+
+            // 미러 동기화(정규화)
+            SyncToAppWorld();
+
+            RaiseAll();
+
+            if (App.I.World != null)
+                App.I.World.timeSlot = BlockToToken(CurrentTimeBlock);
+        }
+
+        private static string BlockToToken(TimeBlock block)
+        {
+            return block switch
+            {
+                TimeBlock.Morning => "morning",
+                TimeBlock.Day => "day",
+                TimeBlock.Evening => "evening",
+                TimeBlock.Night => "night",
+                _ => "morning"
+            };
+        }
+
+        private static TimeBlock TokenToBlock(string tokenOrLegacy)
+        {
+            if (string.IsNullOrWhiteSpace(tokenOrLegacy))
+                return TimeBlock.Morning;
+
+            // 공백 제거 + 소문자 정규화
+            string v = tokenOrLegacy.Trim().ToLowerInvariant();
+
+            // 1) 정상 토큰
+            switch (v)
+            {
+                case "morning": return TimeBlock.Morning;
+                case "day": return TimeBlock.Day;
+                case "evening": return TimeBlock.Evening;
+                case "night": return TimeBlock.Night;
+            }
+
+            // 2) 레거시/한글 저장값 호환(기존 세이브 살리기)
+            // save.json에 "낮" 같은 값이 이미 들어가 있으니 꼭 필요합니다.
+            switch (tokenOrLegacy.Trim())
+            {
+                case "아침": return TimeBlock.Morning;
+                case "낮": return TimeBlock.Day;
+                case "저녁": return TimeBlock.Evening;
+                case "밤": return TimeBlock.Night;
+            }
+
+            // 3) 혹시 예전 영어 표현이 들어갔을 가능성까지(선택)
+            switch (v)
+            {
+                case "noon":
+                case "afternoon":
+                    return TimeBlock.Day;
+            }
+
+            return TimeBlock.Morning;
+        }
+
+        private void SyncToAppWorld()
+        {
+            if (App.I == null || App.I.World == null) return;
+
+            App.I.World.day = Day;
+            App.I.World.timeSlot = BlockToToken(CurrentTimeBlock);
         }
 
         /// <summary>
@@ -196,6 +280,14 @@ namespace Project.Core
             // 새 시간대 시작 시 해당 시간대 핵심 행동은 "미사용"으로 초기화
             HasUsedMajorActionInCurrentBlock = false;
             MajorActionUsedChanged?.Invoke(false);
+
+            SyncToAppWorld();
+
+            if (App.I != null && App.I.World != null)
+            {
+                App.I.World.day = Day;
+                App.I.World.timeSlot = BlockToToken(CurrentTimeBlock);
+            }
         }
 
         private void RaiseAll()
@@ -204,6 +296,23 @@ namespace Project.Core
             TimeBlockChanged?.Invoke(CurrentTimeBlock);
             MajorActionUsedChanged?.Invoke(HasUsedMajorActionInCurrentBlock);
             EventLockChanged?.Invoke(IsEventLocked);
+        }
+        public void ApplyFromAppWorld()
+        {
+            if (App.I == null || App.I.World == null)
+            {
+                InitializeNewGame();
+                return;
+            }
+
+            Day = Mathf.Clamp(App.I.World.day, 1, endDay);
+            EnterTimeBlock(TokenToBlock(App.I.World.timeSlot)); // 기존에 만들어둔 TokenToBlock 사용
+            SetEventLock(false);
+            RaiseAll();
+
+            // 저장 토큰 정규화까지 확실히
+            if (App.I.World != null)
+                App.I.World.timeSlot = BlockToToken(CurrentTimeBlock); // 기존 BlockToToken 사용
         }
     }
 }

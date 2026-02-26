@@ -151,7 +151,7 @@ namespace Project.UI
         private void SetDayText(int day, int endDay)
         {
             if (dayText == null) return;
-            dayText.text = $"Day {day} / {endDay}";
+            dayText.text = $"{day}일차 / {endDay}일";
         }
 
         private void SetTimeBlockText(TimeBlock block)

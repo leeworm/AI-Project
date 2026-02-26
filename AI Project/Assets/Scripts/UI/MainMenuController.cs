@@ -130,8 +130,6 @@ public class MainMenuController : MonoBehaviour
             return;
         }
 
-        Debug.Log("[NewGame] Empty slot -> Start game");
-
         // 사용 중 슬롯이면 덮어쓰기 확인
         if (overwriteText != null)
             overwriteText.text = $"슬롯 {pickedSlot}을(를) 덮어쓸까요?";

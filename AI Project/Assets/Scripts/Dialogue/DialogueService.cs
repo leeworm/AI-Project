@@ -37,7 +37,7 @@ public class DialogueService
 
         NpcTalkResponse resp;
 
-        // ✅ 로컬/프록시 분기
+        // 로컬/프록시 분기
         if (!ShouldCallGpt(playerInput))
         {
             resp = BuildLocalReply(app.World, def, npc, playerInput);
@@ -55,7 +55,7 @@ public class DialogueService
             ApplyResponseToState(npc, resp);
         }
 
-        // ✅ 공통 자동 저장(성공적으로 상태 반영이 끝난 뒤)
+        // 공통 자동 저장(성공적으로 상태 반영이 끝난 뒤)
         app.Save();
 
         return resp;
@@ -104,9 +104,9 @@ public class DialogueService
     {
         string reply = world.timeSlot switch
         {
-            "morning" => "안녕하세요. 오늘 오전 일정부터 정리하겠습니다. 무엇을 우선할까요?",
-            "afternoon" => "오후에는 처리할 일이 늘어납니다. 우선순위를 말씀해 주세요.",
-            "evening" => "저녁입니다. 오늘 남은 과제를 마무리할지, 정리하고 쉬실지 결정하셔야 합니다.",
+            "morning" => "좋은 아침입니다.",
+            "afternoon" => "점심 맛있게 드세요.",
+            "evening" => "좋은 저녁 보내세요.",
             _ => "지금은 무리하지 않는 게 좋겠습니다. 가장 필요한 것부터 말해 주세요."
         };
 
@@ -123,7 +123,7 @@ public class DialogueService
     {
         if (string.IsNullOrWhiteSpace(playerInput)) return false;
 
-        string[] triggers = { "퀘스트", "선택", "결정", "왜", "어떻게", "도와", "계획", "비밀", "중요" };
+        string[] triggers = { "퀘스트", "선택", "결정", "왜", "어떻게", "도와", "계획", "비밀", "중요", "어떤" };
         foreach (var t in triggers)
             if (playerInput.Contains(t, StringComparison.OrdinalIgnoreCase))
                 return true;

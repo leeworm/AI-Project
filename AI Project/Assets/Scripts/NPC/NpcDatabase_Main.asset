@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NpcDatabase
   npcs:
   - {fileID: 11400000, guid: 32a1d41a8e2959a4c9b0bd6ee804d9ed, type: 2}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 41e6355ba175cde47b5d511a5dba2b86, type: 2}
+  - {fileID: 11400000, guid: e947384e0369901499ef4cad186e25fe, type: 2}
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}

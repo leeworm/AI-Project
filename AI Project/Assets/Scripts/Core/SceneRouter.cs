@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Project.Core;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class SceneRouter : MonoBehaviour
@@ -27,6 +28,9 @@ public class SceneRouter : MonoBehaviour
         }
 
         App.I.LoadOrInit();
+
+        GameLoopManager.Instance?.ApplyFromAppWorld();
+
         var idx = App.I.Route.scene_build_index;
         if (idx < 0 || idx >= SceneManager.sceneCountInBuildSettings)
             idx = (int)SceneId.HomeHub;
@@ -44,6 +48,8 @@ public class SceneRouter : MonoBehaviour
         Debug.Log($"[Router] StartNewGameSlot({slot})");
 
         App.I.NewGame(slot);
+
+        GameLoopManager.Instance?.ApplyFromAppWorld();
 
         int idx = App.I.Route.scene_build_index;
         Debug.Log($"[Router] LoadScene index={idx}");

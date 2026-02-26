@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Project.Core;
+using UnityEngine;
 
 public static class AutoBootstrap
 {
@@ -15,6 +16,9 @@ public static class AutoBootstrap
         go.AddComponent<SceneRouter>();
         go.AddComponent<AudioHub>();
         go.AddComponent<UIClickSfxInstaller>();
+        go.AddComponent<ProxyAutoLauncher>();
+        go.AddComponent<QuestManager>();
+        go.AddComponent<GameLoopManager>();
         Object.DontDestroyOnLoad(go);
     }
 }

@@ -18,6 +18,6 @@ public class UIActions : MonoBehaviour
 
     // 메뉴
     public void ContinueSlot1() => SceneRouter.I.Continue(1);
-    public void NewGameSlot1() => SceneRouter.I.NewGame(1);
+    public void NewGameSlot1() => SceneRouter.I.StartNewGameSlot(1);
     public void Quit() => SceneRouter.I.UI_Quit();
 }

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+
 
 public class App : MonoBehaviour
 {
@@ -129,4 +131,47 @@ public class App : MonoBehaviour
     private void OnDisable() => Save();
 #endif
     private void OnApplicationQuit() => Save();
+
+    public void SetGlobalFlag(string key, string value)
+    {
+        if (string.IsNullOrWhiteSpace(key)) return;
+
+        var g = GetOrCreateGlobal();
+        g.UpsertFlag(key, value);
+    }
+
+    public void SetGlobalBool(string key, bool value)
+    {
+        SetGlobalFlag(key, value ? "1" : "0");
+    }
+
+    public NpcState GetOrCreateGlobal()
+    {
+        const string id = "__global";
+        if (!Npcs.TryGetValue(id, out var s))
+        {
+            s = new NpcState { npcId = id, affinity = 0 };
+            Npcs[id] = s;
+        }
+        return s;
+    }
+
+    public string GetGlobalFlag(string key)
+    {
+        var g = GetOrCreateGlobal();
+        var idx = g.flags.FindIndex(f => f.key == key);
+        return idx >= 0 ? g.flags[idx].value : null;
+    }
+    public bool GetGlobalBool(string key, bool defaultValue = false)
+    {
+        var v = GetGlobalFlag(key);
+        if (string.IsNullOrEmpty(v)) return defaultValue;
+
+        // "1"/"0" 또는 "true"/"false" 둘 다 대응
+        if (v == "1") return true;
+        if (v == "0") return false;
+
+        if (bool.TryParse(v, out var b)) return b;
+        return defaultValue;
+    }
 }
