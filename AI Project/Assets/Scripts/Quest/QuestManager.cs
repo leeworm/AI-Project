@@ -35,6 +35,7 @@ public class QuestManager : MonoBehaviour
         {
             // 여기서 퀘스트 등록
             _quests.Add(new Quest_CafeGreet());
+            _quests.Add(new Quest_DynamicGenerated());
 
             _initialized = true;
         }

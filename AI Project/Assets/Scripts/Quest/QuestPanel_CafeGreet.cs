@@ -19,6 +19,11 @@ public class QuestPanel_CafeGreet : MonoBehaviour
 
     private QuestPanelController _parentPanelController;
 
+    [Header("Dynamic Quest UI")]
+    [SerializeField] private GameObject rowDynamic;
+    [SerializeField] private TMP_Text txtDynamic;
+    [SerializeField] private GameObject imgDynamicCheck;
+
     private void Awake()
     {
         if (toggleButton != null)
@@ -108,7 +113,38 @@ public class QuestPanel_CafeGreet : MonoBehaviour
         }
 
         _wasCompleted = _quest.IsCompleted;
+
+        RefreshDynamic();
     }
+
+    private void RefreshDynamic()
+    {
+        if (rowDynamic == null || txtDynamic == null) return;
+
+        var dq = QuestManager.I?.FindQuest("dynamic_generated") as Quest_DynamicGenerated;
+
+        // “발동” 기준: started + objective가 존재
+        bool active =
+            dq != null &&
+            dq.IsStarted &&
+            !string.IsNullOrWhiteSpace(dq.Objective);
+
+        rowDynamic.SetActive(active);
+
+        if (!active) return;
+
+        if (dq.IsCompleted)
+        {
+            txtDynamic.text = $"{dq.Title} 완료!";
+            if (imgDynamicCheck != null) imgDynamicCheck.SetActive(true);
+        }
+        else
+        {
+            txtDynamic.text = $"{dq.Title} - {dq.Objective}";
+            if (imgDynamicCheck != null) imgDynamicCheck.SetActive(false);
+        }
+    }
+
     private void Toggle()
     {
         SetExpanded(!_expanded);

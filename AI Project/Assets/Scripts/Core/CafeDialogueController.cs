@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class CafeDialogueController : MonoBehaviour
 {
@@ -60,6 +61,7 @@ public class CafeDialogueController : MonoBehaviour
         // _questPanel.Close();
         // _questPanel.Toggle();
     }
+
     private void OpenWith(NpcDefinition npc)
     {
         Debug.Log($"OpenWith: {npc.npcId}");
@@ -90,38 +92,28 @@ public class CafeDialogueController : MonoBehaviour
             if (_currentNpc == null)
                 throw new Exception("현재 선택된 NPC가 없습니다.");
 
-            MarkTalked(_currentNpc.npcId);
+            var npcId = _currentNpc.npcId;
 
-            // 윤서만 API, 나머지는 로컬 고정 응답
-            if (IsMainNpc(_currentNpc.npcId))
+            bool useGpt = IsMainNpc(npcId) || IsDynamicQuestTarget(npcId);
+            
+            MarkTalked(npcId);
+
+            if (useGpt)
             {
-                Debug.Log("[Cafe] Main NPC selected. Showing 'thinking' placeholder...");
-
-                // 즉시 UI에 생각 중 텍스트를 보여줌
+                Debug.Log("[Cafe] GPT path. Showing 'thinking' placeholder...");
+                // thinkingText 보여주기
                 var thinkingText = $"{_currentNpc.displayName}은(는) 답변을 생각 중인 것 같습니다...";
                 dialoguePanel.ShowNpcLine(thinkingText);
 
-                // 현재 대화 상대 캡처(응답 도착 시 동일 상대인지 확인)
-                var expectedNpcId = _currentNpc.npcId;
+                var expectedNpcId = npcId;
 
-                Debug.Log("[Cafe] Calling API...");
-                var resp = await _dialogue.TalkAsync(_currentNpc, playerText);
-                Debug.Log("[Cafe] API returned. reply len=" + (resp?.reply?.Length ?? 0));
+                var resp = await _dialogue.TalkAsync(_currentNpc, playerText, forceGpt: true);
 
-                // 사용자가 아직 같은 NPC와 대화 중일 때만 응답으로 갱신
                 if (_currentNpc != null && string.Equals(_currentNpc.npcId, expectedNpcId, StringComparison.OrdinalIgnoreCase))
-                {
                     dialoguePanel.ShowNpcLine(resp.reply);
-                    Debug.Log("[Cafe] ShowNpcLine called with API reply.");
-                }
-                else
-                {
-                    Debug.Log("[Cafe] API reply ignored because current NPC changed.");
-                }
             }
             else
             {
-                // 로컬 1턴 응답(빠르게)
                 dialoguePanel.ShowNpcLine(GetLocalNpcReply(_currentNpc.npcId, _currentNpc.displayName));
             }
         }
@@ -182,5 +174,19 @@ public class CafeDialogueController : MonoBehaviour
 
         // 즉시 저장(안전)
         App.I.Save();
+    }
+
+    private static bool IsDynamicQuestTarget(string npcId)
+    {
+        if (App.I == null) return false;
+
+        bool started = App.I.GetGlobalBool("quest.dynamic_generated.started", false);
+        bool done = App.I.GetGlobalBool("quest.dynamic_generated.done", false);
+        if (!started || done) return false;
+
+        var target = App.I.GetGlobalFlag("quest.dynamic_generated.targetNpcId");
+        if (string.IsNullOrWhiteSpace(target)) return false;
+
+        return string.Equals(target.Trim(), npcId, StringComparison.OrdinalIgnoreCase);
     }
 }

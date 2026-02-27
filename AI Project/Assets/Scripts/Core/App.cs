@@ -34,6 +34,7 @@ public class App : MonoBehaviour
         SetSlot(s);
         DeleteSlot();
         InitDefaultsForNewGame();
+        ResetDynamicQuest();
         Save();
     }
 
@@ -173,5 +174,15 @@ public class App : MonoBehaviour
 
         if (bool.TryParse(v, out var b)) return b;
         return defaultValue;
+    }
+
+    public void ResetDynamicQuest(string id = "dynamic_generated")
+    {
+        SetGlobalBool($"quest.{id}.started", false);
+        SetGlobalBool($"quest.{id}.done", false);
+
+        SetGlobalFlag($"quest.{id}.title", "");
+        SetGlobalFlag($"quest.{id}.objective", "");
+        SetGlobalFlag($"quest.{id}.targetNpcId", "");
     }
 }
